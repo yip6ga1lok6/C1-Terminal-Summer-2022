@@ -43,21 +43,24 @@ class AlgoStrategy(gamelib.AlgoCore):
         MP = 1
         SP = 0
         # This is a good place to do initial setup
-        self.frontline_wall_locations = [[6, 12], [21, 12], [5, 12], [22, 12]]
+        self.frontline_wall_locations = [
+            [6, 12], [21, 12], [5, 12], [22, 12]]  # u
         self.frontline_turrent_locations = [
-            [5, 11], [22, 11], [6, 11], [21, 11]]
+            [5, 11], [22, 11], [6, 11], [21, 11]]  # u
         self.pathing_wall_locations = [[7, 10], [20, 10], [8, 9], [19, 9], [9, 8], [10, 8], [
             11, 8], [12, 8], [13, 8], [14, 8], [15, 8], [16, 8], [17, 8], [18, 8]]
         self.side_wall_locations = [[0, 13], [27, 13], [1, 12], [
-            2, 12], [25, 12], [26, 12], [3, 11], [24, 11]]
-        self.side_wall_extension1_locations = [
-            [3, 10], [24, 10], [4, 9], [23, 9]]
+            2, 12], [25, 12], [26, 12], [3, 11], [24, 11]]  # u
+        self.side_wall_extension1_locations = [[3, 10], [24, 10], [4, 9], [23, 9], [
+            5, 8], [22, 8], [6, 7], [21, 7], [7, 6], [20, 6], [8, 5], [19, 5], [18, 4]]  # s
         self.frontline_wall_extension1_locations = [[7, 11], [20, 11]]
-        self.side_wall_upgrade_locations = [
-            [2, 12], [25, 12], [3, 11], [24, 11]]
-        self.side_turrent_locations = [[2, 11], [25, 11]]
-        self.frontline_turrent_extension1_locations = [[6, 10], [21, 10]]
-        self.support_locations = [[12, 7], [15, 7]]
+        self.side_turrent_locations = [[2, 11], [25, 11]]  # s u
+        self.frontline_turrent_extension1_locations = [
+            [6, 10], [21, 10]]  # s u
+        self.frontline_turrent_extension2_locations = [
+            [7, 9], [20, 9], [8, 8], [19, 8], [9, 7], [18, 7]]
+        self.support_locations = [[12, 7], [13, 7], [
+            14, 7], [15, 7], [12, 6], [13, 6], [14, 6], [15, 6]]  # s u
         self.scored_on_locations = []
 
     def on_turn(self, turn_state):
@@ -188,25 +191,29 @@ class AlgoStrategy(gamelib.AlgoCore):
 
         game_state.attempt_upgrade(self.frontline_wall_locations)
         game_state.attempt_upgrade(self.siphon_extract_side_locations(
-            self.side_wall_upgrade_locations, side))
+            self.side_wall_locations, side))
         if(side == 0):
             game_state.attempt_spawn(SUPPORT, self.support_locations)
         game_state.attempt_spawn(TURRET, self.siphon_extract_side_locations(
             self.side_turrent_locations, side))
-        game_state.attempt_spawn(TURRET,
-                                 self.siphon_extract_side_locations(self.frontline_turrent_extension1_locations, side))
         game_state.attempt_upgrade(self.siphon_extract_side_locations(
             self.frontline_turrent_locations, side))
+        game_state.attempt_spawn(TURRET,
+                                 self.siphon_extract_side_locations(self.frontline_turrent_extension1_locations, side))
         game_state.attempt_upgrade(
             self.siphon_extract_side_locations(self.side_turrent_locations, side))
         game_state.attempt_upgrade(
             self.siphon_extract_side_locations(self.frontline_turrent_extension1_locations, side))
         game_state.attempt_spawn(WALL, self.siphon_extract_side_locations(
             self.side_wall_extension1_locations, side))
-        game_state.attempt_upgrade(
-            self.siphon_extract_side_locations(self.side_wall_locations, side))
-        if(side == 0):
-            game_state.attempt_upgrade(self.support_locations)
+        game_state.attempt_spawn(TURRET, self.siphon_extract_side_locations(
+            self.frontline_turrent_extension2_locations, side))
+        game_state.attempt_upgrade(self.support_locations)
+        game_state.attempt_upgrade(self.siphon_extract_side_locations(
+            self.side_wall_extension1_locations, side))
+        game_state.attempt_upgrade(self.siphon_extract_side_locations(
+            self.frontline_turrent_extension2_locations, side))
+        game_state.attempt_spawn(SUPPORT, self.support_locations)
 
     def siphon_extract_side_locations(self, locationList, side: int):
         """
