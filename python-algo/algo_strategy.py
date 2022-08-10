@@ -50,6 +50,14 @@ class AlgoStrategy(gamelib.AlgoCore):
             11, 8], [12, 8], [13, 8], [14, 8], [15, 8], [16, 8], [17, 8], [18, 8]]
         self.side_wall_locations = [[0, 13], [27, 13], [1, 12], [
             2, 12], [25, 12], [26, 12], [3, 11], [24, 11]]
+        self.side_wall_extension1_locations = [
+            [3, 10], [24, 10], [4, 9], [23, 9]]
+        self.frontline_wall_extension1_locations = [[7, 11], [20, 11]]
+        self.side_wall_upgrade_locations = [
+            [2, 12], [25, 12], [3, 11], [24, 11]]
+        self.side_turrent_locations = [[2, 11], [25, 11]]
+        self.frontline_turrent_extension1_locations = [[6, 10], [21, 10]]
+        self.support_locations = [[12, 7], [15, 7]]
         self.scored_on_locations = []
 
     def on_turn(self, turn_state):
@@ -154,8 +162,46 @@ class AlgoStrategy(gamelib.AlgoCore):
             gamelib.debug_write("Balanced enhancement")
         elif (side == 1):
             gamelib.debug_write("Right side focused enhancement")
-        elif (side == 2):
+        else:
             gamelib.debug_write("Left side focused enhancement")
+
+        game_state.attempt_upgrade(self.frontline_wall_locations)
+        game_state.attempt_upgrade(self.siphon_extract_side_locations(
+            self.side_wall_upgrade_locations, side))
+        if(side == 0):
+            game_state.attempt_spawn(SUPPORT, self.support_locations)
+        game_state.attempt_spawn(self.siphon_extract_side_locations(
+            self.side_turrent_locations, side))
+        game_state.attempt_spawn(
+            self.siphon_extract_side_locations(self.frontline_turrent_extension1_locations, side))
+        game_state.attempt_upgrade(self.siphon_extract_side_locations(
+            self.frontline_turrent_locations), side)
+        game_state.attempt_upgrade(
+            self.siphon_extract_side_locations(self.side_turrent_locations), side)
+        game_state.attempt_upgrade(
+            self.siphon_extract_side_locations(self.frontline_turrent_extension1_locations), side)
+        game_state.attempt_spawn(self.siphon_extract_side_locations(
+            self.side_wall_extension1_locations), side)
+        game_state.attempt_upgrade(
+            self.siphon_extract_side_locations(self.side_wall_locations), side)
+        if(side == 0):
+            game_state.attempt_upgrade(self.support_locations)
+
+    def siphon_extract_side_locations(self, locationList, side: int):
+        """
+        Side:
+        0 = Side neutral
+        1 = Right side
+        2 = Left side
+
+        Given a list of locations, return a list of locations on the given side of the map
+        """
+        if (side == 0):
+            return locationList
+        elif (side == 1):
+            return [location for location in locationList if location[0] > 13]
+        elif (side == 2):
+            return [location for location in locationList if location[0] < 13]
 
     def starter_strategy(self, game_state):
         """
