@@ -66,7 +66,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         # Comment or remove this line to enable warnings.
         game_state.suppress_warnings(True)
 
-        self.starter_strategy(game_state)
+        self.siphon_strategy(game_state)
 
         game_state.submit_turn()
 
@@ -79,18 +79,19 @@ class AlgoStrategy(gamelib.AlgoCore):
         """
         Build walls in v shape to direct enemy units into the desired path (right or left side)
         """
-        # Turn 1: Place defences at default location
+        # First turn: Place defences at default location
         if game_state.turn_number == 1:
             self.siphon_build_core_defences(game_state)
-
-        # Each turn: 1. Rebuild any destroyed core defences 2. Build reactive defenses
-        self.siphon_repair_core_defences(game_state)
+        else:
+            # Each turn: 1. Rebuild any destroyed core defences 2. Build reactive defenses
+            self.siphon_repair_core_defences(game_state)
+            self.build_reactive_defense(game_state)
 
     def siphon_build_core_defences(self, game_state):
         """
         Build basic defenses using hardcoded locations
         """
-        # Initialize the initial stationary units
+        gamelib.debug_write("Building core defenses")
         wall_upgrade_locations = [[5, 12], [21, 12]]
         game_state.attempt_spawn(WALL, self.frontline_wall_locations)
         game_state.attempt_spawn(TURRET, self.frontline_turrent_locations)
@@ -103,6 +104,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         Rebuilt any destroyed core defences that were built in the siphon_build_core_defences function
         In order of importancy
         """
+        gamelib.debug_write("Attempting to rebuild core defenses")
         game_state.attempt_spawn(WALL, self.frontline_wall_locations)
         game_state.attempt_spawn(WALL, self.pathing_wall_locations)
         game_state.attempt_spawn(TURRET, self.frontline_turrent_locations)
@@ -110,7 +112,50 @@ class AlgoStrategy(gamelib.AlgoCore):
         game_state.attempt_upgrade(self.frontline_wall_locations)
 
     def siphon_build_reactive_defense(self, game_state):
-        return
+        """
+        If sustained losses in last turn:
+        Enhance defences based on where the enemy scored on us from.
+        Focus on enhancing the majority losses side
+
+        Else:
+        Enhance defences based on predetermined locations
+        """
+        lossesPos = self.scored_on_locations
+        gamelib.debug_write("scored_on_locations at {}".format(lossesPos))
+        if(len(lossesPos) == 0):
+            # Enhance based on predetermined locations
+            gamelib.debug_write("No losses")
+            self.siphon_enhance_defences(game_state, 0)
+        else:
+            rightCount = 0
+            leftCount = 0
+            for location in lossesPos:
+                if(location[0] > 13):
+                    rightCount += 1
+                else:
+                    leftCount += 1
+            if(rightCount > leftCount):
+                # Focus enhancement on right side
+                gamelib.debug_write("Right side sustained major losses")
+                self.siphon_enhance_defences(game_state, 1)
+            else:
+                # Focus enhancement on left side
+                gamelib.debug_write("Left side sustained major losses")
+                self.siphon_enhance_defences(game_state, 2)
+
+    def siphon_enhance_defences(self, game_state, side: int):
+        """
+        Side:
+        0 = Balanced enhancement
+        1 = Right side focused enhancement
+        2 = Left side focused enhancement
+        """
+        if (side == 0):
+            gamelib.debug_write("Balanced enhancement")
+        elif (side == 1):
+            gamelib.debug_write("Right side focused enhancement")
+        elif (side == 2):
+            gamelib.debug_write("Left side focused enhancement")
 
     def starter_strategy(self, game_state):
         """
