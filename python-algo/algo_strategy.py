@@ -43,6 +43,13 @@ class AlgoStrategy(gamelib.AlgoCore):
         MP = 1
         SP = 0
         # This is a good place to do initial setup
+        self.frontline_wall_locations = [[6, 12], [21, 12], [5, 12], [22, 12]]
+        self.frontline_turrent_locations = [
+            [5, 11], [22, 11], [6, 11], [21, 11]]
+        self.pathing_wall_locations = [[7, 10], [20, 10], [8, 9], [19, 9], [9, 8], [10, 8], [
+            11, 8], [12, 8], [13, 8], [14, 8], [15, 8], [16, 8], [17, 8], [18, 8]]
+        self.side_wall_locations = [[0, 13], [27, 13], [1, 12], [
+            2, 12], [25, 12], [26, 12], [3, 11], [24, 11]]
         self.scored_on_locations = []
 
     def on_turn(self, turn_state):
@@ -74,20 +81,36 @@ class AlgoStrategy(gamelib.AlgoCore):
         """
         # Turn 1: Place defences at default location
         if game_state.turn_number == 1:
-            self.siphon_build_initial_defences(game_state)
+            self.siphon_build_core_defences(game_state)
 
-    def siphon_build_initial_defences(self, game_state):
+        # Each turn: 1. Rebuild any destroyed core defences 2. Build reactive defenses
+        self.siphon_repair_core_defences(game_state)
+
+    def siphon_build_core_defences(self, game_state):
         """
         Build basic defenses using hardcoded locations
         """
         # Initialize the initial stationary units
-        wall_locations = [[0, 13], [27, 13], [1, 12], [2, 12], [5, 12], [6, 12], [20, 12], [21, 12], [25, 12], [26, 12], [3, 11], [24, 11], [
-            7, 10], [20, 10], [8, 9], [19, 9], [9, 8], [10, 8], [11, 8], [12, 8], [13, 8], [14, 8], [15, 8], [16, 8], [17, 8], [18, 8]]
-        turret_locations = [[5, 11], [6, 11], [20, 11], [21, 11]]
         wall_upgrade_locations = [[5, 12], [21, 12]]
-        game_state.attempt_spawn(WALL, wall_locations)
-        game_state.attempt_spawn(TURRET, turret_locations)
+        game_state.attempt_spawn(WALL, self.frontline_wall_locations)
+        game_state.attempt_spawn(TURRET, self.frontline_turrent_locations)
         game_state.attempt_upgrade(wall_upgrade_locations)
+        game_state.attempt_spawn(WALL, self.pathing_wall_locations)
+        game_state.attempt_spawn(WALL, self.side_wall_locations)
+
+    def siphon_repair_core_defences(self, game_state):
+        """
+        Rebuilt any destroyed core defences that were built in the siphon_build_core_defences function
+        In order of importancy
+        """
+        game_state.attempt_spawn(WALL, self.frontline_wall_locations)
+        game_state.attempt_spawn(WALL, self.pathing_wall_locations)
+        game_state.attempt_spawn(TURRET, self.frontline_turrent_locations)
+        game_state.attempt_spawn(WALL, self.side_wall_locations)
+        game_state.attempt_upgrade(self.frontline_wall_locations)
+
+    def siphon_build_reactive_defense(self, game_state):
+        return
 
     def starter_strategy(self, game_state):
         """
