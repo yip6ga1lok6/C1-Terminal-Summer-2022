@@ -93,7 +93,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         else:
             # Each turn: 1. Rebuild any destroyed core defences 2. Build reactive defenses
             self.siphon_repair_core_defences(game_state)
-            self.build_reactive_defense(game_state)
+            self.siphon_build_reactive_defense(game_state)
 
         # Using the starter algo to deploy mobile units
         # If the turn is less than 5, stall with interceptors and wait to see enemy's base
@@ -102,19 +102,19 @@ class AlgoStrategy(gamelib.AlgoCore):
         else:
             # Now let's analyze the enemy base to see where their defenses are concentrated.
             # If they have many units in the front we can build a line for our demolishers to attack them at long range.
-            if self.detect_enemy_unit(game_state, unit_type=None, valid_x=None, valid_y=[14, 15]) > 10:
-                self.demolisher_line_strategy(game_state)
-            else:
-                # They don't have many units in the front so lets figure out their least defended area and send Scouts there.
+            # if self.detect_enemy_unit(game_state, unit_type=None, valid_x=None, valid_y=[14, 15]) > 10:
+            #     self.demolisher_line_strategy(game_state)
+            # else:
+            # They don't have many units in the front so lets figure out their least defended area and send Scouts there.
 
-                # Only spawn Scouts every other turn
-                # Sending more at once is better since attacks can only hit a single scout at a time
-                if game_state.turn_number % 2 == 1:
-                    # To simplify we will just check sending them from back left and right
-                    scout_spawn_location_options = [[13, 0], [14, 0]]
-                    best_location = self.least_damage_spawn_location(
-                        game_state, scout_spawn_location_options)
-                    game_state.attempt_spawn(SCOUT, best_location, 1000)
+            # Only spawn Scouts every other turn
+            # Sending more at once is better since attacks can only hit a single scout at a time
+            if game_state.turn_number % 2 == 1:
+                # To simplify we will just check sending them from back left and right
+                scout_spawn_location_options = [[13, 0], [14, 0]]
+                best_location = self.least_damage_spawn_location(
+                    game_state, scout_spawn_location_options)
+                game_state.attempt_spawn(SCOUT, best_location, 1000)
 
     def siphon_build_core_defences(self, game_state):
         """
@@ -191,20 +191,20 @@ class AlgoStrategy(gamelib.AlgoCore):
             self.side_wall_upgrade_locations, side))
         if(side == 0):
             game_state.attempt_spawn(SUPPORT, self.support_locations)
-        game_state.attempt_spawn(self.siphon_extract_side_locations(
+        game_state.attempt_spawn(TURRET, self.siphon_extract_side_locations(
             self.side_turrent_locations, side))
-        game_state.attempt_spawn(
-            self.siphon_extract_side_locations(self.frontline_turrent_extension1_locations, side))
+        game_state.attempt_spawn(TURRET,
+                                 self.siphon_extract_side_locations(self.frontline_turrent_extension1_locations, side))
         game_state.attempt_upgrade(self.siphon_extract_side_locations(
-            self.frontline_turrent_locations), side)
+            self.frontline_turrent_locations, side))
         game_state.attempt_upgrade(
-            self.siphon_extract_side_locations(self.side_turrent_locations), side)
+            self.siphon_extract_side_locations(self.side_turrent_locations, side))
         game_state.attempt_upgrade(
-            self.siphon_extract_side_locations(self.frontline_turrent_extension1_locations), side)
-        game_state.attempt_spawn(self.siphon_extract_side_locations(
-            self.side_wall_extension1_locations), side)
+            self.siphon_extract_side_locations(self.frontline_turrent_extension1_locations, side))
+        game_state.attempt_spawn(WALL, self.siphon_extract_side_locations(
+            self.side_wall_extension1_locations, side))
         game_state.attempt_upgrade(
-            self.siphon_extract_side_locations(self.side_wall_locations), side)
+            self.siphon_extract_side_locations(self.side_wall_locations, side))
         if(side == 0):
             game_state.attempt_upgrade(self.support_locations)
 
