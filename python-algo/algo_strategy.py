@@ -33,34 +33,21 @@ class AlgoStrategy(gamelib.AlgoCore):
         """
         gamelib.debug_write('Configuring your custom algo strategy...')
         self.config = config
-        global WALL, SUPPORT, TURRET, SCOUT, DEMOLISHER, INTERCEPTOR, MP, SP
+        global WALL, SUPPORT, TURRET, SCOUT, DEMOLISHER, INTERCEPTOR, MP, SP, ENEMY_MAP
         WALL = config["unitInformation"][0]["shorthand"]
         SUPPORT = config["unitInformation"][1]["shorthand"]
         TURRET = config["unitInformation"][2]["shorthand"]
         SCOUT = config["unitInformation"][3]["shorthand"]
         DEMOLISHER = config["unitInformation"][4]["shorthand"]
         INTERCEPTOR = config["unitInformation"][5]["shorthand"]
+        ENEMY_MAP = [[13, 27], [14, 27], [12, 26], [13, 26], [14, 26], [15, 26], [11, 25], [12, 25], [13, 25], [14, 25], [15, 25], [16, 25], [10, 24], [11, 24], [12, 24], [13, 24], [14, 24], [15, 24], [16, 24], [17, 24], [9, 23], [10, 23], [11, 23], [12, 23], [13, 23], [14, 23], [15, 23], [16, 23], [17, 23], [18, 23], [8, 22], [9, 22], [10, 22], [11, 22], [12, 22], [13, 22], [14, 22], [15, 22], [16, 22], [17, 22], [18, 22], [19, 22], [7, 21], [8, 21], [9, 21], [10, 21], [11, 21], [12, 21], [13, 21], [14, 21], [15, 21], [16, 21], [17, 21], [18, 21], [19, 21], [20, 21], [6, 20], [7, 20], [8, 20], [9, 20], [10, 20], [11, 20], [12, 20], [13, 20], [14, 20], [15, 20], [16, 20], [17, 20], [18, 20], [19, 20], [20, 20], [21, 20], [5, 19], [6, 19], [7, 19], [8, 19], [9, 19], [10, 19], [11, 19], [12, 19], [13, 19], [14, 19], [15, 19], [16, 19], [17, 19], [18, 19], [19, 19], [20, 19], [21, 19], [22, 19], [4, 18], [5, 18], [6, 18], [7, 18], [8, 18], [9, 18], [10, 18], [11, 18], [12, 18], [13, 18], [14, 18], [15, 18], [16, 18], [17, 18], [
+            18, 18], [19, 18], [20, 18], [21, 18], [22, 18], [23, 18], [3, 17], [4, 17], [5, 17], [6, 17], [7, 17], [8, 17], [9, 17], [10, 17], [11, 17], [12, 17], [13, 17], [14, 17], [15, 17], [16, 17], [17, 17], [18, 17], [19, 17], [20, 17], [21, 17], [22, 17], [23, 17], [24, 17], [2, 16], [3, 16], [4, 16], [5, 16], [6, 16], [7, 16], [8, 16], [9, 16], [10, 16], [11, 16], [12, 16], [13, 16], [14, 16], [15, 16], [16, 16], [17, 16], [18, 16], [19, 16], [20, 16], [21, 16], [22, 16], [23, 16], [24, 16], [25, 16], [1, 15], [2, 15], [3, 15], [4, 15], [5, 15], [6, 15], [7, 15], [8, 15], [9, 15], [10, 15], [11, 15], [12, 15], [13, 15], [14, 15], [15, 15], [16, 15], [17, 15], [18, 15], [19, 15], [20, 15], [21, 15], [22, 15], [23, 15], [24, 15], [25, 15], [26, 15], [0, 14], [1, 14], [2, 14], [3, 14], [4, 14], [5, 14], [6, 14], [7, 14], [8, 14], [9, 14], [10, 14], [11, 14], [12, 14], [13, 14], [14, 14], [15, 14], [16, 14], [17, 14], [18, 14], [19, 14], [20, 14], [21, 14], [22, 14], [23, 14], [24, 14], [25, 14], [26, 14], [27, 14]]
         MP = 1
         SP = 0
         # This is a good place to do initial setup
-        self.frontline_wall_locations = [
-            [6, 12], [21, 12], [5, 12], [22, 12]]  # u
-        self.frontline_turrent_locations = [
-            [5, 11], [22, 11], [6, 11], [21, 11]]  # u
-        self.pathing_wall_locations = [[7, 10], [20, 10], [8, 9], [19, 9], [9, 8], [10, 8], [
-            11, 8], [12, 8], [13, 8], [14, 8], [15, 8], [16, 8], [17, 8], [18, 8]]
-        self.side_wall_locations = [[0, 13], [27, 13], [1, 12], [
-            2, 12], [25, 12], [26, 12], [3, 11], [24, 11]]  # u
-        self.side_wall_extension1_locations = [[3, 10], [24, 10], [4, 9], [23, 9], [
-            5, 8], [22, 8], [6, 7], [21, 7], [7, 6], [20, 6], [8, 5], [19, 5], [18, 4]]  # s
-        self.frontline_wall_extension1_locations = [[7, 11], [20, 11]]
-        self.side_turrent_locations = [[2, 11], [25, 11]]  # s u
-        self.frontline_turrent_extension1_locations = [
-            [6, 10], [21, 10]]  # s u
-        self.frontline_turrent_extension2_locations = [
-            [7, 9], [20, 9], [8, 8], [19, 8], [9, 7], [18, 7]]
-        self.support_locations = [[12, 7], [13, 7], [
-            14, 7], [15, 7], [12, 6], [13, 6], [14, 6], [15, 6]]  # s u
+
+        # define structure locations here
+
         self.scored_on_locations = []
 
     def on_turn(self, turn_state):
@@ -77,7 +64,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         # Comment or remove this line to enable warnings.
         game_state.suppress_warnings(True)
 
-        self.siphon_strategy(game_state)
+        self.cloverfield_strategy(game_state)
 
         game_state.submit_turn()
 
@@ -85,6 +72,51 @@ class AlgoStrategy(gamelib.AlgoCore):
     NOTE: All the methods after this point are part of the sample starter-algo
     strategy and can safely be replaced for your custom algo.
     """
+
+    def cloverfield_strategy(self, game_state):
+        """
+        Strategy based on predictions of enemy behaviours
+        """
+        self.destructive_interceptors_count = 0
+        self.enemy_shielding_power = 0
+        self.cf_preflight_check(game_state)
+
+    def cf_preflight_check(self, game_state):
+        """
+        Analyse the current game conditions:
+        1. If enemy has MP > 10, prepare self destructive interceptors
+        2. If enemy's total effective shielding amount > 40, prepare more destructive interceptors
+        3. Define the frontline units that should be pre-emptively repaired in this round
+        4. Scan enemy defense line for any new holes to be opened next round
+        5. Conclude enemy defense type: blocked or single-opened or double-opened
+        """
+
+        # 1. If enemy has MP > 10, prepare self destructive interceptors
+        if game_state.get_resource(1, 1) >= 10:
+            self.destructive_interceptors_count += 1
+        gamelib.debug_write("Enemy has {} MP".format(
+            game_state.get_resource(1, 1)))
+
+        # 2. If enemy's total effective shielding amount > 40, prepare more destructive interceptors
+        for enemyLocation in ENEMY_MAP:
+            unit = game_state.contains_stationary_unit(enemyLocation)
+            if unit != False:
+                if unit.unit_type == "EF":
+                    self.enemy_shielding_power += self.cf_calculate_support_power(
+                        unit.y, unit.upgraded)
+        gamelib.debug_write("Enemy has {} effective shielding".format(
+            self.enemy_shielding_power))
+
+        # 3. Define the frontline units that should be pre-emptively repaired in this round
+
+    def cf_calculate_support_power(self, y: int, upgraded: bool) -> int:
+        """
+        calculate the shield a particular enemy support provides
+        """
+        if (upgraded):
+            return 2 + (27 - y) * 0.34
+        else:
+            return 3
 
     def siphon_strategy(self, game_state):
         """
