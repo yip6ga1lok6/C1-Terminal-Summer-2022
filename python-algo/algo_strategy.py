@@ -327,9 +327,13 @@ class AlgoStrategy(gamelib.AlgoCore):
     def cf_deploy_core(self, game_state):
         if game_state.turn_number <= 5:
             game_state.attempt_spawn(
-                DEMOLISHER, self.default_spawn_left, 1000)
+                DEMOLISHER, self.default_spawn_left, 1)
+            game_state.attempt_spawn(INTERCEPTOR, self.default_spawn_left, 2)
         else:
-            if(self.enemy_left_open and self.enemy_right_open):
+            if(not self.enemy_left_open and not self.enemy_right_open):
+                # enemy fully blocked off
+                return
+            elif(self.enemy_left_open and self.enemy_right_open):
                 # interceptorCount = self.destructive_interceptors_count
                 # while(interceptorCount > 0):
                 #     game_state.attempt_spawn(
