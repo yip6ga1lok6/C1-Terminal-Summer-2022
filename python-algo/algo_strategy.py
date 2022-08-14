@@ -68,7 +68,7 @@ class AlgoStrategy(gamelib.AlgoCore):
             25, 12], [2, 11], [4, 11], [5, 11], [22, 11], [23, 11], [25, 11]]
         # s u
         self.turret_build_s1 = [[1, 12], [26, 12]]
-        self.wall_build_core2 = [[2, 13], [25, 13]]
+        self.wall_build_core2 = [[2, 13], [25, 13], [6, 12], [21, 12]]
 
         self.interceptor_path_left = [[4, 10], [4, 9], [8, 6]]
         self.interceptor_path_right = [[23, 10], [23, 9], [19, 6]]
@@ -380,6 +380,10 @@ class AlgoStrategy(gamelib.AlgoCore):
                     game_state.attempt_spawn(
                         DEMOLISHER, self.default_spawn_left, 3)
                     game_state.attempt_spawn(
+                        SCOUT, self.default_spawn_left, 6)
+                    game_state.attemp_spawn(
+                        INTERCEPTOR, self.default_spawn_left, 2)
+                    game_state.attempt_spawn(
                         SCOUT, self.default_spawn_left, 1000)
 
             elif(self.enemy_left_open):
@@ -399,6 +403,10 @@ class AlgoStrategy(gamelib.AlgoCore):
                 if game_state.turn_number % 3 == 1:
                     game_state.attempt_spawn(
                         DEMOLISHER, self.default_spawn_right, 3)
+                    game_state.attempt_spawn(
+                        SCOUT, self.default_spawn_right, 6)
+                    game_state.attempt_spawn(
+                        INTERCEPTOR, self.default_spawn_right, 2)
                     game_state.attempt_spawn(
                         SCOUT, self.default_spawn_right, 1000)
             else:
