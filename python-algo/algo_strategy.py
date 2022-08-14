@@ -86,6 +86,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         self.enemy_shielding_power = 0
         self.preemptive_destroying_location = []
         self.enemy_vertical_opens = [True for i in range(28)]
+        self.enemy_left_open = False
+        self.enemy_right_open = False
         self.cf_preflight_check(game_state)
 
     def cf_preflight_check(self, game_state) -> None:
@@ -96,7 +98,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         3. Rebuild the pre-emptively destroyed structures
         4. Define the frontline units that should be pre-emptively destroyed in this round
         5. Scan enemy defense line for any new holes to be opened next round
-        6. Conclude enemy defense type: blocked or single-opened or double-opened
+        6. Determine enemy's side of openings
         """
 
         # 1. If enemy has MP > 10, prepare self destructive interceptors
@@ -176,16 +178,16 @@ class AlgoStrategy(gamelib.AlgoCore):
             "Pre-emptively destroying {} structures".format(self.preemptive_destroying_location))
 
         # 5. Scan enemy defense line for any new holes to be opened next round
-        # 6. Conclude enemy defense type: blocked or single-opened or double-opened
+        # 6. Determine enemy's side of openings
         self.cf_compute_line_continuity(game_state, True, 0, [])
-        gamelib.debug_write(self.enemy_vertical_opens)
-        game_state.attempt_remove([[0, 13], [1, 13], [2, 13], [3, 13], [4, 13], [5, 13], [6, 13], [7, 13], [8, 13], [9, 13], [10, 13], [11, 13], [12, 13], [
-                                  13, 13], [14, 13], [15, 13], [16, 13], [17, 13], [18, 13], [19, 13], [20, 13], [21, 13], [22, 13], [23, 13], [24, 13], [25, 13], [26, 13], [27, 13]])
-        openlist = []
-        for x in range(28):
-            if(self.enemy_vertical_opens[x]):
-                openlist.append([x, 13])
-        game_state.attempt_spawn(WALL, openlist)
+        if(self.enemy_vertical_opens[0:14].count(True)):
+            self.enemy_right_open = True
+        if(self.enemy_vertical_opens[14:28].count(True)):
+            self.enemy_left_open = True
+        gamelib.debug_write(
+            "Left open is {} (our perspective)".format(self.enemy_right_open))
+        gamelib.debug_write(
+            "Right open is {} (our perspective)".format(self.enemy_left_open))
 
     def cf_compute_line_continuity(self, game_state, fullScan: bool, line: int, coordinates: list):
         """
@@ -232,7 +234,7 @@ class AlgoStrategy(gamelib.AlgoCore):
             nextCoordinatesList.append(list(tp))
         nextCoordinatesList = [
             coord for coord in nextCoordinatesList if coord[1] >= 14]
-        gamelib.debug_write("check these next {}".format(nextCoordinatesList))
+        #gamelib.debug_write("check these next {}".format(nextCoordinatesList))
         self.cf_compute_line_continuity(
             game_state, nextfullScan, xCoord+1, nextCoordinatesList)
         return
