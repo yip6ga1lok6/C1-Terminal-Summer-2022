@@ -66,6 +66,9 @@ class AlgoStrategy(gamelib.AlgoCore):
 
         self.wall_upgrade_core2 = [[0, 13], [1, 13], [26, 13], [27, 13], [2, 12], [
             25, 12], [2, 11], [25, 11]]
+
+        self.wall_upgrade_core3 = [
+            [7, 10], [20, 10], [7, 9], [20, 9], [7, 8], [20, 8]]
         # s u
         self.turret_build_s1 = [[5, 11], [22, 11]]
         self.wall_build_core2 = [[2, 13], [25, 13], [6, 12], [21, 12]]
@@ -329,6 +332,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         else:
             game_state.attempt_remove(self.interceptor_path_right)
 
+        game_state.attempt_upgrade(self.wall_upgrade_core3)
+
     def cf_deploy_core(self, game_state):
         if game_state.turn_number <= 5:
             game_state.attempt_spawn(
@@ -372,7 +377,7 @@ class AlgoStrategy(gamelib.AlgoCore):
                 #     interceptorCount -= 1
                 self.cf_deploy_destructive_interceptors(game_state, 0, 2)
                 if game_state.turn_number > 10:
-                    for i in range(min(2, game_state.turn_number // 15)):
+                    for i in range(min(5, game_state.turn_number // 10)):
                         self.cf_deploy_destructive_interceptors(
                             game_state, 0, (i+2) % 3+1)
 
@@ -392,7 +397,7 @@ class AlgoStrategy(gamelib.AlgoCore):
                 #     interceptorCount -= 1
                 self.cf_deploy_destructive_interceptors(game_state, 1, 2)
                 if game_state.turn_number > 10:
-                    for i in range(min(2, game_state.turn_number // 15)):
+                    for i in range(min(5, game_state.turn_number // 10)):
                         self.cf_deploy_destructive_interceptors(
                             game_state, 1, (i+2) % 3+1)
 
