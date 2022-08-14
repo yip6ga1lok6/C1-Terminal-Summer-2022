@@ -85,6 +85,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         self.destructive_interceptors_count = 0
         self.enemy_shielding_power = 0
         self.preemptive_destroying_location = []
+        self.enemy_vertical_opens = [True for i in range(28)]
         self.cf_preflight_check(game_state)
 
     def cf_preflight_check(self, game_state) -> None:
@@ -104,7 +105,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         gamelib.debug_write("Enemy has {} MP".format(
             game_state.get_resource(1, 1)))
 
-        # 2. If enemy's total effective shielding amount > 40, prepare more destructive interceptors
+        # 2. If enemy's total effective shielding amount > 25, prepare more destructive interceptors
+        # health for scout is 15, 25+15 will require an additional interceptor (40)
         for enemyLocation in ENEMY_MAP:
             unit = game_state.contains_stationary_unit(enemyLocation)
             if unit != False:
@@ -112,7 +114,7 @@ class AlgoStrategy(gamelib.AlgoCore):
                     self.enemy_shielding_power += self.cf_calculate_support_power(
                         unit.y, unit.upgraded)
         self.destructive_interceptors_count += (
-            self.enemy_shielding_power+20)//40
+            self.enemy_shielding_power+25)//40
         gamelib.debug_write("Enemy has {} effective shielding".format(
             self.enemy_shielding_power))
 
@@ -164,9 +166,7 @@ class AlgoStrategy(gamelib.AlgoCore):
                     game_state.warn(
                         "Unknown structure type: {}".format(structure.unit_type))
                     continue
-                gamelib.debug_write(structure)
-                gamelib.debug_write(structure.health)
-                gamelib.debug_write(maxhealth)
+
                 if(structure.health/maxhealth <= 0.6):
                     self.preemptive_destroying_location.append(structure)
                     game_state.attempt_remove([structure.x, structure.y])
@@ -174,6 +174,68 @@ class AlgoStrategy(gamelib.AlgoCore):
         self.preemptive_rebuilding_location = self.preemptive_destroying_location
         gamelib.debug_write(
             "Pre-emptively destroying {} structures".format(self.preemptive_destroying_location))
+
+        # 5. Scan enemy defense line for any new holes to be opened next round
+        # 6. Conclude enemy defense type: blocked or single-opened or double-opened
+        self.cf_compute_line_continuity(game_state, True, 0, [])
+        gamelib.debug_write(self.enemy_vertical_opens)
+        game_state.attempt_remove([[0, 13], [1, 13], [2, 13], [3, 13], [4, 13], [5, 13], [6, 13], [7, 13], [8, 13], [9, 13], [10, 13], [11, 13], [12, 13], [
+                                  13, 13], [14, 13], [15, 13], [16, 13], [17, 13], [18, 13], [19, 13], [20, 13], [21, 13], [22, 13], [23, 13], [24, 13], [25, 13], [26, 13], [27, 13]])
+        openlist = []
+        for x in range(28):
+            if(self.enemy_vertical_opens[x]):
+                openlist.append([x, 13])
+        game_state.attempt_spawn(WALL, openlist)
+
+    def cf_compute_line_continuity(self, game_state, fullScan: bool, line: int, coordinates: list):
+        """
+        Compute the continuity of the enemy defense line
+        Record any holes for mobile units to pass
+        """
+        # end of recursion
+        if(line == 28):
+            return
+        # receive the coordinates of interests from the previous iteration
+        checkCoordinates = []
+        nextCoordinates = []
+        nextfullScan = True
+        if(fullScan):
+            # scan the whole verticle line
+            checkCoordinates = [pos for pos in ENEMY_MAP if pos[0] == line]
+        else:
+            # scan the next round's coordinates
+            checkCoordinates = coordinates
+        xCoord = line
+        for coordinate in checkCoordinates:
+            coordinateContent = game_state.contains_stationary_unit(coordinate)
+            if(coordinateContent != False):
+                yCoord = coordinateContent.y
+                nextCoordinates.append(tuple([xCoord+1, yCoord-1])
+                                       )
+                nextCoordinates.append(tuple(
+                    [xCoord+1, yCoord]))
+                nextCoordinates.append(tuple([xCoord+1, yCoord+1])
+                                       )
+                nextfullScan = False
+                self.enemy_vertical_opens[xCoord] = False
+                yExtension = yCoord+1
+                while(game_state.contains_stationary_unit([xCoord, yExtension]) != False):
+                    nextCoordinates.append(tuple([xCoord+1, yExtension+1]))
+                    yExtension += 1
+                yExtension = yCoord-1
+                while(game_state.contains_stationary_unit([xCoord, yExtension]) != False):
+                    nextCoordinates.append(tuple([xCoord+1, yExtension-1]))
+                    yExtension -= 1
+        nextCoordinates = list(set(nextCoordinates))
+        nextCoordinatesList = []
+        for tp in nextCoordinates:
+            nextCoordinatesList.append(list(tp))
+        nextCoordinatesList = [
+            coord for coord in nextCoordinatesList if coord[1] >= 14]
+        gamelib.debug_write("check these next {}".format(nextCoordinatesList))
+        self.cf_compute_line_continuity(
+            game_state, nextfullScan, xCoord+1, nextCoordinatesList)
+        return
 
     def cf_calculate_support_power(self, y: int, upgraded: bool) -> int:
         """
