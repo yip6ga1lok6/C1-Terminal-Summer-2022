@@ -55,40 +55,39 @@ class AlgoStrategy(gamelib.AlgoCore):
 
         # s
         self.wall_build_core = [[0, 13], [1, 13], [26, 13], [27, 13], [2, 12], [4, 12], [5, 12], [22, 12], [23, 12], [25, 12], [2, 11], [6, 11], [21, 11], [25, 11], [
-            6, 10], [21, 10], [6, 9], [21, 9], [7, 8], [20, 8], [8, 7], [19, 7], [9, 6], [18, 6], [10, 5], [11, 5], [12, 5], [13, 5], [14, 5], [15, 5], [16, 5], [17, 5]]
+            7, 10], [20, 10], [7, 9], [20, 9], [7, 8], [20, 8], [8, 7], [19, 7], [9, 6], [18, 6], [10, 5], [11, 5], [12, 5], [13, 5], [14, 5], [15, 5], [16, 5], [17, 5]]
 
         # s u
-        self.turret_build_core = [[4, 11], [5, 11], [22, 11], [23, 11]]
+        self.turret_build_core = [[4, 11], [1, 12], [26, 12], [23, 11]]
 
         # u
         self.wall_upgrade_core1 = [[4, 12], [5, 12],
                                    [22, 12], [23, 12], [6, 11], [21, 11]]
 
         self.wall_upgrade_core2 = [[0, 13], [1, 13], [26, 13], [27, 13], [2, 12], [
-            25, 12], [2, 11], [4, 11], [5, 11], [22, 11], [23, 11], [25, 11]]
+            25, 12], [2, 11], [25, 11]]
         # s u
-        self.turret_build_s1 = [[1, 12], [26, 12]]
+        self.turret_build_s1 = [[5, 11], [22, 11]]
         self.wall_build_core2 = [[2, 13], [25, 13], [6, 12], [21, 12]]
 
-        self.interceptor_path_left = [[4, 10], [4, 9], [8, 6]]
-        self.interceptor_path_right = [[23, 10], [23, 9], [19, 6]]
-        self.support_left_core = [[8, 8], [9, 8]]
-        self.support_left_core2 = [[7, 9], [8, 9], [9, 9]]
-        self.support_left_core3 = [[7, 10], [8, 10], [9, 10]]
-        self.support_left_core4 = [[7, 11], [8, 11], [9, 11], [10, 11]]
-        self.support_right_core = [[18, 8], [19, 8]]
-        self.support_right_core2 = [[18, 9], [19, 9], [20, 9]]
-        self.support_right_core3 = [[18, 10], [19, 10], [20, 10]]
-        self.support_right_core4 = [[17, 11], [18, 11], [19, 11], [20, 11]]
+        self.interceptor_path_left = [[5, 10], [5, 9], [9, 5]]
+        self.interceptor_path_right = [[22, 10], [22, 9], [18, 5]]
+        self.support_left_core = [[7, 11], [8, 11], [9, 11], [10, 11]]
+        self.support_left_core2 = [[8, 10], [9, 10], [10, 10]]
+        self.support_left_core3 = [[8, 9], [9, 9], [10, 9]]
+        self.support_left_core4 = [[8, 8], [9, 8], [10, 8]]
+        self.support_right_core = [[20, 11], [19, 11], [18, 11], [17, 11]]
+        self.support_right_core2 = [[19, 10], [18, 10], [17, 10]]
+        self.support_right_core3 = [[19, 9], [18, 9], [17, 9]]
+        self.support_right_core4 = [[19, 8], [18, 8], [17, 9]]
 
-        self.demolisher_attack_right = [[19, 5]]
-        self.demolisher_attack_left = [[8, 5]]
+        self.interceptor_attack_right = [[21, 7], [20, 6], [19, 5]]
+        self.interceptor_attack_left = [[6, 7], [7, 6], [8, 5]]
 
-        self.interceptor_attack_right = [[22, 8], [21, 7], [20, 6]]
-        self.interceptor_attack_left = [[5, 8], [6, 7], [7, 6]]
-
-        self.default_spawn_right = [[24, 10]]
-        self.default_spawn_left = [[3, 10]]
+        self.default_spawn_right_fast = [[24, 10]]
+        self.default_spawn_right_slow = [[23, 9]]
+        self.default_spawn_left_fast = [[3, 10]]
+        self.default_spawn_left_slow = [[4, 9]]
         self.scored_on_locations = []
 
     def on_turn(self, turn_state):
@@ -142,8 +141,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         # 1. If enemy has MP > 10, prepare self destructive interceptors
         if game_state.get_resource(1, 1) >= 10:
             self.destructive_interceptors_count += 1
-        gamelib.debug_write("Enemy has {} MP".format(
-            game_state.get_resource(1, 1)))
+        # gamelib.debug_write("Enemy has {} MP".format(
+        #     game_state.get_resource(1, 1)))
 
         # 2. If enemy's total effective shielding amount > 25, prepare more destructive interceptors
         # health for scout is 15, 25+15 will require an additional interceptor (40)
@@ -155,8 +154,8 @@ class AlgoStrategy(gamelib.AlgoCore):
                         unit.y, unit.upgraded)
         self.destructive_interceptors_count += (
             self.enemy_shielding_power+25)//40
-        gamelib.debug_write("Enemy has {} effective shielding".format(
-            self.enemy_shielding_power))
+        # gamelib.debug_write("Enemy has {} effective shielding".format(
+        #     self.enemy_shielding_power))
 
         # 3. Rebuild the pre-emptively destroyed structures
         for rebuild_unit in self.preemptive_rebuilding_location:
@@ -212,8 +211,8 @@ class AlgoStrategy(gamelib.AlgoCore):
                     game_state.attempt_remove([structure.x, structure.y])
         # record the removed structures, rebuild next round
         self.preemptive_rebuilding_location = self.preemptive_destroying_location
-        gamelib.debug_write(
-            "Pre-emptively destroying {} structures".format(self.preemptive_destroying_location))
+        # gamelib.debug_write(
+        #     "Pre-emptively destroying {} structures".format(self.preemptive_destroying_location))
 
         # 5. Scan enemy defense line for any new holes to be opened next round
         # 6. Determine enemy's side of openings
@@ -272,7 +271,7 @@ class AlgoStrategy(gamelib.AlgoCore):
             nextCoordinatesList.append(list(tp))
         nextCoordinatesList = [
             coord for coord in nextCoordinatesList if coord[1] >= 14]
-        #gamelib.debug_write("check these next {}".format(nextCoordinatesList))
+        gamelib.debug_write("check these next {}".format(nextCoordinatesList))
         self.cf_compute_line_continuity(
             game_state, nextfullScan, xCoord+1, nextCoordinatesList)
         return
@@ -289,9 +288,13 @@ class AlgoStrategy(gamelib.AlgoCore):
     def cf_build_core(self, game_state):
         game_state.attempt_spawn(WALL, self.wall_build_core)
         game_state.attempt_spawn(TURRET, self.turret_build_core)
-        game_state.attempt_upgrade(self.wall_upgrade_core1)
-        game_state.attempt_upgrade(self.wall_upgrade_core2)
         game_state.attempt_spawn(TURRET, self.turret_build_s1)
+        if(self.enemy_right_open):
+            game_state.attempt_spawn(WALL, self.interceptor_path_left)
+        if(self.enemy_left_open):
+            game_state.attempt_spawn(WALL, self.interceptor_path_right)
+        game_state.attempt_upgrade(self.wall_upgrade_core2)
+        game_state.attempt_upgrade(self.wall_upgrade_core1)
         game_state.attempt_upgrade(self.turret_build_core)
         game_state.attempt_upgrade(self.turret_build_s1)
         game_state.attempt_spawn(WALL, self.wall_build_core2)
@@ -300,35 +303,36 @@ class AlgoStrategy(gamelib.AlgoCore):
         # Reactive build starts here
         if(self.enemy_right_open):
             game_state.attempt_spawn(WALL, self.interceptor_path_left)
-            game_state.attempt_spawn(SUPPORT, self.support_left_core)
-            game_state.attempt_upgrade(self.support_left_core)
-            game_state.attempt_spawn(SUPPORT, self.support_left_core2)
-            game_state.attempt_upgrade(self.support_left_core2)
-            game_state.attempt_spawn(SUPPORT, self.support_left_core3)
-            game_state.attempt_upgrade(self.support_left_core3)
-            game_state.attempt_spawn(SUPPORT, self.support_left_core4)
-            game_state.attempt_upgrade(self.support_left_core4)
+            if(game_state.turn_number > 12):
+                game_state.attempt_spawn(SUPPORT, self.support_left_core)
+                game_state.attempt_upgrade(self.support_left_core)
+                game_state.attempt_spawn(SUPPORT, self.support_left_core2)
+                game_state.attempt_upgrade(self.support_left_core2)
+                game_state.attempt_spawn(SUPPORT, self.support_left_core3)
+                game_state.attempt_upgrade(self.support_left_core3)
+                game_state.attempt_spawn(SUPPORT, self.support_left_core4)
+                game_state.attempt_upgrade(self.support_left_core4)
         else:
             game_state.attempt_remove(self.interceptor_path_left)
 
         if(self.enemy_left_open):
             game_state.attempt_spawn(WALL, self.interceptor_path_right)
-            game_state.attempt_spawn(SUPPORT, self.support_right_core)
-            game_state.attempt_upgrade(self.support_right_core)
-            game_state.attempt_spawn(SUPPORT, self.support_right_core2)
-            game_state.attempt_upgrade(self.support_right_core2)
-            game_state.attempt_spawn(SUPPORT, self.support_right_core3)
-            game_state.attempt_upgrade(self.support_right_core3)
-            game_state.attempt_spawn(SUPPORT, self.support_right_core4)
-            game_state.attempt_upgrade(self.support_right_core4)
+            if(game_state.turn_number > 12):
+                game_state.attempt_spawn(SUPPORT, self.support_right_core)
+                game_state.attempt_upgrade(self.support_right_core)
+                game_state.attempt_spawn(SUPPORT, self.support_right_core2)
+                game_state.attempt_upgrade(self.support_right_core2)
+                game_state.attempt_spawn(SUPPORT, self.support_right_core3)
+                game_state.attempt_upgrade(self.support_right_core3)
+                game_state.attempt_spawn(SUPPORT, self.support_right_core4)
+                game_state.attempt_upgrade(self.support_right_core4)
         else:
             game_state.attempt_remove(self.interceptor_path_right)
 
     def cf_deploy_core(self, game_state):
         if game_state.turn_number <= 5:
             game_state.attempt_spawn(
-                DEMOLISHER, self.default_spawn_left, 1)
-            game_state.attempt_spawn(INTERCEPTOR, self.default_spawn_left, 2)
+                DEMOLISHER, self.default_spawn_left_slow, 2)
         else:
             if(not self.enemy_left_open and not self.enemy_right_open):
                 # enemy fully blocked off
@@ -346,21 +350,17 @@ class AlgoStrategy(gamelib.AlgoCore):
                 game_state.attempt_spawn(
                     INTERCEPTOR, self.interceptor_attack_right[1:2])
                 if game_state.turn_number > 10:
-                    game_state.attempt_spawn(
-                        INTERCEPTOR, self.interceptor_attack_left[2:3])
-                    game_state.attempt_spawn(
-                        INTERCEPTOR, self.interceptor_attack_right[2:3])
-                if game_state.turn_number > 20:
-                    game_state.attempt_spawn(
-                        INTERCEPTOR, self.interceptor_attack_left[0:1])
-                    game_state.attempt_spawn(
-                        INTERCEPTOR, self.interceptor_attack_right[0:1])
+                    for i in range(min(2, game_state.turn_number // 15)):
+                        self.cf_deploy_destructive_interceptors(
+                            game_state, 0, (i+2) % 3+1)
+                        self.cf_deploy_destructive_interceptors(
+                            game_state, 1, (i+2) % 3+1)
 
-                if game_state.turn_number % 3 == 1:
+                if game_state.turn_number % ((game_state.turn_number//20)+5) == 1:
                     game_state.attempt_spawn(
-                        DEMOLISHER, self.default_spawn_left, 3)
+                        DEMOLISHER, self.default_spawn_left_slow, min(4, ((game_state.turn_number//20)+2)))
                     game_state.attempt_spawn(
-                        SCOUT, self.default_spawn_left, 1000)
+                        SCOUT, self.default_spawn_left_fast, 1000)
 
             elif(self.enemy_right_open):
                 # interceptorCount = self.destructive_interceptors_count
@@ -372,19 +372,15 @@ class AlgoStrategy(gamelib.AlgoCore):
                 #     interceptorCount -= 1
                 self.cf_deploy_destructive_interceptors(game_state, 0, 2)
                 if game_state.turn_number > 10:
-                    for i in range(game_state.turn_number // 10):
+                    for i in range(min(2, game_state.turn_number // 15)):
                         self.cf_deploy_destructive_interceptors(
                             game_state, 0, (i+2) % 3+1)
 
-                if game_state.turn_number % 3 == 1:
+                if game_state.turn_number % ((game_state.turn_number//20)+5) == 1:
                     game_state.attempt_spawn(
-                        DEMOLISHER, self.default_spawn_left, 3)
+                        DEMOLISHER, self.default_spawn_left_slow, min(4, ((game_state.turn_number//20)+2)))
                     game_state.attempt_spawn(
-                        SCOUT, self.default_spawn_left, 6)
-                    game_state.attemp_spawn(
-                        INTERCEPTOR, self.default_spawn_left, 2)
-                    game_state.attempt_spawn(
-                        SCOUT, self.default_spawn_left, 1000)
+                        SCOUT, self.default_spawn_left_fast, 1000)
 
             elif(self.enemy_left_open):
                 # interceptorCount = self.destructive_interceptors_count
@@ -396,19 +392,15 @@ class AlgoStrategy(gamelib.AlgoCore):
                 #     interceptorCount -= 1
                 self.cf_deploy_destructive_interceptors(game_state, 1, 2)
                 if game_state.turn_number > 10:
-                    for i in range(game_state.turn_number // 10):
+                    for i in range(min(2, game_state.turn_number // 15)):
                         self.cf_deploy_destructive_interceptors(
                             game_state, 1, (i+2) % 3+1)
 
-                if game_state.turn_number % 3 == 1:
+                if game_state.turn_number % ((game_state.turn_number//20)+5) == 1:
                     game_state.attempt_spawn(
-                        DEMOLISHER, self.default_spawn_right, 3)
+                        DEMOLISHER, self.default_spawn_right_slow, min(4, ((game_state.turn_number//20)+2)))
                     game_state.attempt_spawn(
-                        SCOUT, self.default_spawn_right, 6)
-                    game_state.attempt_spawn(
-                        INTERCEPTOR, self.default_spawn_right, 2)
-                    game_state.attempt_spawn(
-                        SCOUT, self.default_spawn_right, 1000)
+                        SCOUT, self.default_spawn_right_fast, 1000)
             else:
                 return
 
