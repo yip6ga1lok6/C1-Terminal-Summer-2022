@@ -294,7 +294,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         game_state.attempt_spawn(TURRET, self.turret_build_s1)
         game_state.attempt_upgrade(self.turret_build_core)
         game_state.attempt_upgrade(self.turret_build_s1)
-        game_state.attempt_build(WALL, self.wall_build_core2)
+        game_state.attempt_spawn(WALL, self.wall_build_core2)
         game_state.attempt_upgrade(self.wall_build_core2)
 
         # Reactive build starts here
