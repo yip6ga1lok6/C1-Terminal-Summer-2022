@@ -53,6 +53,38 @@ class AlgoStrategy(gamelib.AlgoCore):
 
         # define structure locations here
 
+        # s
+        self.wall_build_core = [[0, 13], [1, 13], [26, 13], [27, 13], [2, 12], [4, 12], [23, 12], [25, 12], [2, 11], [5, 11], [6, 11], [21, 11], [22, 11], [
+            25, 11], [7, 9], [20, 9], [7, 8], [20, 8], [8, 7], [19, 7], [9, 6], [18, 6], [10, 5], [11, 5], [12, 5], [13, 5], [14, 5], [15, 5], [16, 5], [17, 5]]
+
+        # s u
+        self.turret_build_core = [[1, 12], [26, 12], [6, 10], [21, 10]]
+
+        # u
+        self.wall_upgrade_core = [[0, 13], [1, 13], [26, 13], [27, 13], [2, 12], [
+            4, 12], [23, 12], [25, 12], [5, 11], [6, 11], [21, 11], [22, 11]]
+
+        # s u
+        self.wall_build_s1 = [[2, 13], [25, 13], [3, 10], [24, 10]]
+
+        # s u
+        self.turret_build_c1 = [[5, 10], [22, 10]]
+
+        self.interceptor_path_left = [[5, 9], [5, 8], [10, 4]]
+        self.interceptor_path_right = [[22, 9], [22, 8], [17, 4]]
+        self.support_left_core = [[8, 8], [9, 8]]
+        self.support_right_core = [[18, 8], [19, 8]]
+        self.wall_build_cl1 = [[5, 12], [6, 12]]
+        self.wall_build_cr1 = [[21, 12], [22, 12]]
+
+        self.demolisher_attack_right = [[17, 3]]
+        self.demolisher_attack_left = [[10, 3]]
+
+        self.interceptor_attack_right = [[6, 7], [7, 6], [8, 5], [9, 4]]
+        self.interceptor_attack_left = [[21, 7], [20, 6], [19, 5], [18, 4]]
+
+        self.default_spawn_right = [[4, 9]]
+        self.default_spawn_left = [[23, 9]]
         self.scored_on_locations = []
 
     def on_turn(self, turn_state):
@@ -88,9 +120,11 @@ class AlgoStrategy(gamelib.AlgoCore):
         self.enemy_vertical_opens = [True for i in range(28)]
         self.enemy_left_open = False
         self.enemy_right_open = False
-        self.cf_preflight_check(game_state)
+        self.cf_preflight(game_state)
+        self.cf_build_core(game_state)
+        self.cf_deploy_core(game_state)
 
-    def cf_preflight_check(self, game_state) -> None:
+    def cf_preflight(self, game_state) -> None:
         """
         Analyse the current game conditions:
         1. If enemy has MP > 10, prepare self destructive interceptors
@@ -141,10 +175,10 @@ class AlgoStrategy(gamelib.AlgoCore):
 
         # 4. Define the frontline units that should be pre-emptively repaired in this round
         # load the current structure state before the coming round start
-        game_state.attempt_spawn(WALL, [[5, 10], [6, 10], [5, 11], [7, 12]])
-        game_state.attempt_spawn(TURRET, [[5, 9], [6, 9]])
-        game_state.attempt_upgrade([[5, 10], [6, 10], [5, 11]])
-        game_state.attempt_upgrade([[6, 9]])
+        # game_state.attempt_spawn(WALL, [[5, 10], [6, 10], [5, 11], [7, 12]])
+        # game_state.attempt_spawn(TURRET, [[5, 9], [6, 9]])
+        # game_state.attempt_upgrade([[5, 10], [6, 10], [5, 11]])
+        # game_state.attempt_upgrade([[6, 9]])
         self.current_structure_map = [game_state.contains_stationary_unit(
             pos) for pos in FRIENDLY_MAP]
         for structure in self.current_structure_map:
@@ -247,6 +281,100 @@ class AlgoStrategy(gamelib.AlgoCore):
             return 2 + (27 - y) * 0.34
         else:
             return 3
+
+    def cf_build_core(self, game_state):
+        game_state.attepmt_spawn(WALL, self.wall_build_core)
+        game_state.attepmt_spawn(TURRET, self.turret_build_core)
+        game_state.attempt_upgrade(self.wall_upgrade_core)
+        game_state.attempt_spawn(WALL, self.wall_build_s1)
+        game_state.attempt_upgrade(self.wall_build_s1)
+        game_state.attempt_spawn(TURRET, self.turret_build_c1)
+        game_state.attempt_upgrade(self.turret_build_core)
+        game_state.attempt_upgrade(self.turret_build_c1)
+
+        # Reactive build starts here
+        if(self.enemy_left_open):
+            game_state.attempt_spawn(WALL, self.interceptor_path_left)
+            game_state.attempt_spawn(WALL, self.wall_build_cl1)
+            game_state.attempt_upgrade(self.wall_build_cl1)
+            game_state.attempt_spawn(SUPPORT, self.support_left_core)
+            game_state.attempt_upgrade(self.support_left_core)
+        else:
+            game_state.attempt_remove(self.interceptor_path_left)
+
+        if(self.enemy_right_open):
+            game_state.attempt_spawn(WALL, self.interceptor_path_right)
+            game_state.attempt_spawn(WALL, self.wall_build_cr1)
+            game_state.attempt_upgrade(self.wall_build_cr1)
+            game_state.attempt_spawn(SUPPORT, self.support_right_core)
+            game_state.attempt_upgrade(self.support_right_core)
+        else:
+            game_state.attempt_remove(self.interceptor_path_right)
+
+    def cf_deploy_core(self, game_state):
+        if game_state.turn_number < 5:
+            if(self.enemy_left_open):
+                game_state.attempt_spawn(
+                    DEMOLISHER, self.demolisher_attack_left)
+            if(self.enemy_right_open):
+                game_state.attempt_spawn(
+                    DEMOLISHER, self.demolisher_attack_right)
+        else:
+            if(self.enemy_left_open and self.enemy_right_open):
+                interceptorCount = self.destructive_interceptors_count
+                while(interceptorCount > 0):
+                    game_state.attempt_spawn(
+                        INTERCEPTOR, self.interceptor_attack_left[1:1])
+                    game_state.attempt_spawn(
+                        INTERCEPTOR, self.interceptor_attack_right[1:1])
+                    interceptorCount -= 1
+
+                if game_state.turn_number % 2 == 1:
+                    game_state.attempt_spawn(
+                        DEMOLISHER, self.default_spawn_left, 1)
+                    game_state.attempt_spawn(
+                        DEMOLISHER, self.default_spawn_right, 1)
+                    game_state.attempt_spawn(
+                        SCOUT, self.default_spawn_left, 2)
+                    game_state.attempt_spawn(
+                        SCOUT, self.default_spawn_right, 2)
+                    game_state.attempt_spawn(
+                        SCOUT, self.default_spawn_left, 1000)
+                    game_state.attempt_spawn(
+                        SCOUT, self.default_spawn_right, 1000)
+
+            if(self.enemy_left_open):
+                interceptorCount = self.destructive_interceptors_count
+                while(interceptorCount > 0):
+                    game_state.attempt_spawn(
+                        INTERCEPTOR, self.interceptor_attack_left[1:1])
+                    game_state.attempt_spawn(
+                        INTERCEPTOR, self.interceptor_attack_left[0:0])
+                    interceptorCount -= 1
+
+                game_state.attempt_spawn(
+                    DEMOLISHER, self.demolisher_attack_right, 1)
+                if game_state.turn_number % 2 == 1:
+                    game_state.attempt_spawn(
+                        DEMOLISHER, self.default_spawn_left, 1)
+                    game_state.attempt_spawn(
+                        SCOUT, self.default_spawn_left, 1000)
+            if(self.enemy_right_open):
+                interceptorCount = self.destructive_interceptors_count
+                while(interceptorCount > 0):
+                    game_state.attempt_spawn(
+                        INTERCEPTOR, self.interceptor_attack_right[1:1])
+                    game_state.attempt_spawn(
+                        INTERCEPTOR, self.interceptor_attack_right[0:0])
+                    interceptorCount -= 1
+
+                game_state.attempt_spawn(
+                    DEMOLISHER, self.demolisher_attack_left, 1)
+                if game_state.turn_number % 2 == 1:
+                    game_state.attempt_spawn(
+                        DEMOLISHER, self.default_spawn_right, 1)
+                    game_state.attempt_spawn(
+                        SCOUT, self.default_spawn_right, 1000)
 
     def siphon_strategy(self, game_state):
         """
