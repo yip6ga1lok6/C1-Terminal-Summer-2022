@@ -332,7 +332,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         else:
             game_state.attempt_remove(self.interceptor_path_right)
 
-        game_state.attempt_upgrade(self.wall_upgrade_core3)
+        if(game_state.turn_number > 20):
+            game_state.attempt_upgrade(self.wall_upgrade_core3)
 
     def cf_deploy_core(self, game_state):
         if game_state.turn_number <= 5:
@@ -377,7 +378,7 @@ class AlgoStrategy(gamelib.AlgoCore):
                 #     interceptorCount -= 1
                 self.cf_deploy_destructive_interceptors(game_state, 0, 2)
                 if game_state.turn_number > 10:
-                    for i in range(min(5, game_state.turn_number // 10)):
+                    for i in range(min(4, game_state.turn_number // 12)):
                         self.cf_deploy_destructive_interceptors(
                             game_state, 0, (i+2) % 3+1)
 
@@ -397,7 +398,7 @@ class AlgoStrategy(gamelib.AlgoCore):
                 #     interceptorCount -= 1
                 self.cf_deploy_destructive_interceptors(game_state, 1, 2)
                 if game_state.turn_number > 10:
-                    for i in range(min(5, game_state.turn_number // 10)):
+                    for i in range(min(4, game_state.turn_number // 12)):
                         self.cf_deploy_destructive_interceptors(
                             game_state, 1, (i+2) % 3+1)
 
